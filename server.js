@@ -1,5 +1,8 @@
+const { password } = require('./config.json');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const cTable = require('console.table');
+const { roleNameToId, managerNameToId, departmentNameToId, } = require('./lib/switches');
 
 // Create the connection to database
 const connection = mysql.createConnection({
@@ -8,43 +11,66 @@ const connection = mysql.createConnection({
     // Your MySQL username
     user: 'root',
     // Your MySQL password
-    password: 'xxxxxxxx',
+    password: password,
+
     database: 'company_DB'
   });
   
-  connection.connect(err => {
-    if (err) throw err;
-    console.log('connected to company database as id ' + connection.threadId);
-    app.start();
-  });
+connection.connect(err => {
+  if (err) throw err;
+  console.log(`                                                                                  
+  @@@@@@@@  @@@@@@@@@@   @@@@@@@   @@@        @@@@@@   @@@ @@@  @@@@@@@@  @@@@@@@@  
+  @@@@@@@@  @@@@@@@@@@@  @@@@@@@@  @@@       @@@@@@@@  @@@ @@@  @@@@@@@@  @@@@@@@@  
+  @@!       @@! @@! @@!  @@!  @@@  @@!       @@!  @@@  @@! !@@  @@!       @@!       
+  !@!       !@! !@! !@!  !@!  @!@  !@!       !@!  @!@  !@! @!!  !@!       !@!       
+  @!!!:!    @!! !!@ @!@  @!@@!@!   @!!       @!@  !@!   !@!@!   @!!!:!    @!!!:!    
+  !!!!!:    !@!   ! !@!  !!@!!!    !!!       !@!  !!!    @!!!   !!!!!:    !!!!!:    
+  !!:       !!:     !!:  !!:       !!:       !!:  !!!    !!:    !!:       !!:       
+  :!:       :!:     :!:  :!:        :!:      :!:  !:!    :!:    :!:       :!:       
+    :: ::::  :::     ::    ::        :: ::::  ::::: ::     ::     :: ::::   :: ::::  
+  : :: ::    :      :     :        : :: : :   : :  :      :     : :: ::   : :: ::   
+                                                                                    
+                                                                                    
+  @@@@@@@  @@@@@@@    @@@@@@    @@@@@@@  @@@  @@@  @@@@@@@@  @@@@@@@                
+  @@@@@@@  @@@@@@@@  @@@@@@@@  @@@@@@@@  @@@  @@@  @@@@@@@@  @@@@@@@@               
+    @@!    @@!  @@@  @@!  @@@  !@@       @@!  !@@  @@!       @@!  @@@               
+    !@!    !@!  @!@  !@!  @!@  !@!       !@!  @!!  !@!       !@!  @!@               
+    @!!    @!@!!@!   @!@!@!@!  !@!       @!@@!@!   @!!!:!    @!@!!@!                
+    !!!    !!@!@!    !!!@!!!!  !!!       !!@!!!    !!!!!:    !!@!@!                 
+    !!:    !!: :!!   !!:  !!!  :!!       !!: :!!   !!:       !!: :!!                
+    :!:    :!:  !:!  :!:  !:!  :!:       :!:  !:!  :!:       :!:  !:!               
+      ::    ::   :::  ::   :::   ::: :::   ::  :::   :: ::::  ::   :::               
+      :      :   : :   :   : :   :: :: :   :   :::  : :: ::    :   : :               
+                                                                                    `
 
+  );
+  firstPrompt();
+});
+
+function firstPrompt() {
+  console.log(`===========================================================\n`);
+  inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'What would you like to do?',
+      choices: [
+        'View all departments',
+        'View all roles',
+        'View all employees',
+        'Add a department',
+        'Add a role',
+        'Add an employee',
+        'Update an employee role'
+      ]
+  },
+  ]).then(selection => {
+    app.handleSelection(selection);
+  });
+}
 
   class MainApp {
-    constructor() {
-      this.teamMembers = [];
-    };
-  
-    start() {
-      return inquirer.prompt([
-        {
-          type: 'list',
-          name: 'action',
-          message: 'What would you like to do?',
-          choices: [
-            'View all departments',
-            'View all roles',
-            'View all employees',
-            'Add a department',
-            'Add a role',
-            'Add an employee',
-            'Update an employee role'
-          ]
-      },
-      ]).then(selection => {
-        this.handleSelection(selection);
-      });
-    }
-      
+
     handleSelection(selection) {
       switch (selection.action) {
         case 'View all departments':
@@ -56,6 +82,9 @@ const connection = mysql.createConnection({
         case 'View all employees':
             this.viewEmployees();
             break
+        case 'Add a role':
+            this.addRole();
+            break;
         case 'Add a department':
             this.addDepartment();
             break;
@@ -63,7 +92,7 @@ const connection = mysql.createConnection({
           this.addEmployee();
           break;
         case 'Update an employee role':
-          this.updateEmployeeRole();      
+          this.updateEmployeeRole();    
       }
     }
   
@@ -75,6 +104,7 @@ const connection = mysql.createConnection({
         console.log('\n \n COMPANY DEPARTMENTS');
         console.table(res);
         connection.end;
+        firstPrompt();
       });
     }
   
@@ -93,6 +123,7 @@ const connection = mysql.createConnection({
         console.log('\n \n COMPANY ROLES');
         console.table(res);
         connection.end;
+        firstPrompt();
       });
     }
   
@@ -111,13 +142,15 @@ const connection = mysql.createConnection({
       LEFT JOIN department d
       ON r.department_id = d.id
       LEFT JOIN employee m
-      ON e.manager_id = m.id`;
+      ON e.manager_id = m.id
+      ORDER BY e.lastName`;
       
       connection.query(sql, function(err, res) {
         if (err) throw err;
         console.log('\n \n COMPANY EMPLOYEES');
         console.table(res);
         connection.end;
+        firstPrompt();
       });
     }
   
@@ -141,19 +174,85 @@ const connection = mysql.createConnection({
         connection.query(`INSERT INTO department SET ?`, { name: department.name}, function (err, result) {
               if (err) throw err;
               console.log('New Department Created!');
+              firstPrompt();
+          });
+      
+      });
+    }
+
+    addRole() {
+      let roleParams = [];
+      inquirer.prompt([
+        {
+          type: 'input',
+          name: 'title',
+          message: "What is the new role's title? (Required)",
+          validate: nameInput => {
+              if (nameInput) {
+                  return true;
+              } else {
+                  console.log("Please Enter a Role Title!");
+                  return false;
+              }
+          }
+      },
+      {
+        type: 'number',
+          name: 'salary',
+          message: "What is the new role's salary? (Enter as a number with without a '$')",
+          validate: nameInput => {
+              if (typeof nameInput === "number") {
+                  return true;
+              } else {
+                  console.log("You must enter the salary as a number with no '$' symbol!");
+                  return false;
+              }
+          }
+      },
+      {
+        type: 'list',
+        name: 'department',
+        message: "What department is this role in?",
+        choices: ['DevOps', 'Marketing', 'HQ', 'Human Resources']
+      }
+      ]).then(answers => {
+        let paramsObj = {};
+        let department;
+        switch (answers.department) {
+            case 'DevOps':
+              department = 1;
+              break;
+            case 'Marketing':
+              department = 2;
+              break;
+            case 'Accounting':
+              department = 3;
+              break;
+            case 'HQ':
+              department = 4;     
+        };
+        paramsObj.department_id = department;
+        paramsObj.salary = answers.salary;
+        paramsObj.title = answers.title;
+        roleParams.push(paramsObj);
+      })
+      .then(() =>  {  
+        connection.query(`INSERT INTO role SET ?`, roleParams, function (err, result) {
+              if (err) throw err;
+              console.log('New Role Created!');
+              firstPrompt();
           });
       
       });
     }
     
     async addEmployee() {
-        const roleList = await connection.promise().query(`SELECT title FROM role`)
+        const roleList =  connection.promise().query(`SELECT title FROM role`)
           .then( (rows) => {
             const roles = [];
             for (var i in rows[0]) {
               roles.push(rows[0][i].title);
             }
-            console.log(roles);
             return roles;
           }).then( roles => {
             return inquirer.prompt([
@@ -248,14 +347,14 @@ const connection = mysql.createConnection({
             function (err, result) {
               if (err) throw err;
               console.log('New Employee Created!');
+              firstPrompt();
             }
           );
-        }).catch(console.log)
-        .then( () => connection.end());
+        }).catch(console.log);
     }
   
     async updateEmployeeRole() {
-      const params = []  
+      const params = [];  
       await connection.promise().query(`SELECT CONCAT(firstName, " ", lastName) AS Employee FROM employee ORDER BY lastName`)
           .then( (rows) => {
             const employees = [];
@@ -302,11 +401,11 @@ const connection = mysql.createConnection({
               };
               const roleParam = { role_id: new_role};
               params.unshift(roleParam);
-              console.log(params);
             }).then (()=> {
               connection.query(`UPDATE employee SET ? WHERE ? AND ?`, params, function(err, res) {
                 if (err) throw err;
                 console.log('Employee Role Updated');
+                firstPrompt();
               });
             })
             .catch(console.log);
@@ -315,7 +414,6 @@ const connection = mysql.createConnection({
       
     }
   };
-  
   
   const app = new MainApp;
 
