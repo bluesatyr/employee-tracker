@@ -1,14 +1,14 @@
 use company_DB;
 
 INSERT INTO department(name)
-VALUES ('dev/ops'), ('marketing'), ('accounting'), ('HQ');
+VALUES ('DevOps'), ('Marketing'), ('Accounting'), ('HQ');
 
 INSERT INTO role(title, salary, department_id)
-VALUES  ('software engineer', 85000.00, 1),
-        ('accountant', 80000.00, 3),
-        ('marketer', 80000.00, 2),
+VALUES  ('Software Engineer', 85000.00, 1),
+        ('Accountant', 80000.00, 3),
+        ('Marketer', 80000.00, 2),
         ('UI/UX designer', 60000.00, 1),
-        ('president', 500000.00, 4);
+        ('President', 500000.00, 4);
 
 INSERT INTO employee(firstName, lastName, role_id, manager_id) 
 VALUES  ("Jane", "Austin", 5, null),
