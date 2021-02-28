@@ -244,7 +244,7 @@ const connection = mysql.createConnection({
               lastName: answers.last_name,
               role_id: role,
               manager_id: manager
-            }, 
+            },
             function (err, result) {
               if (err) throw err;
               console.log('New Employee Created!');
@@ -255,7 +255,8 @@ const connection = mysql.createConnection({
     }
   
     async updateEmployeeRole() {
-        await connection.promise().query(`SELECT CONCAT(firstName, " ", lastName) AS Employee FROM employee ORDER BY lastName`)
+      const params = []  
+      await connection.promise().query(`SELECT CONCAT(firstName, " ", lastName) AS Employee FROM employee ORDER BY lastName`)
           .then( (rows) => {
             const employees = [];
             for (var i in rows[0]) {
@@ -271,19 +272,46 @@ const connection = mysql.createConnection({
                 choices: employees
               },
             ]).then(answer => {
+              const firstLast = answer.employee.split(" ");
+              params.push({firstName: firstLast[0]});
+              params.push({lastName: firstLast[1]});
+
               return inquirer.prompt([
                 {
                   type: 'list',
-                  name: 'new_role',
+                  name: 'role',
                   message: `Choose ${answer.employee}'s new role:`,
-                  choices: ['Software Engineer', 'Accountant']
+                  choices: ['Software Engineer', 'Accountant', 'Marketer', 'UI/UX designer']
                 }
               ]);
+              
             }).then(result => {
-              console.log(result.new_role);
-            }).catch(console.log);
+              let new_role;
+              switch (result.role) {
+                case 'Software Engineer':
+                  new_role = 1;
+                  break;
+                case 'Accountant':
+                  new_role = 2;
+                  break;
+                case 'Marketer':
+                  new_role = 3;
+                  break;
+                case 'UI/UX designer':
+                  new_role = 4;
+              };
+              const roleParam = { role_id: new_role};
+              params.unshift(roleParam);
+              console.log(params);
+            }).then (()=> {
+              connection.query(`UPDATE employee SET ? WHERE ? AND ?`, params, function(err, res) {
+                if (err) throw err;
+                console.log('Employee Role Updated');
+              });
+            })
+            .catch(console.log);
           });
-      //console.log('ACTION: Update an employee role');
+      
       
     }
   };
