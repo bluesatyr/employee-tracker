@@ -6,7 +6,7 @@ VALUES ('DevOps'), ('Marketing'), ('Accounting'), ('HQ');
 INSERT INTO role(title, salary, department_id)
 VALUES  ('Software Engineer', 85000.00, 1),
         ('Accountant', 80000.00, 3),
-        ('Marketer', 80000.00, 2),
+        ('Marketing Specialist', 80000.00, 2),
         ('UI/UX designer', 60000.00, 1),
         ('President', 500000.00, 4);
 
