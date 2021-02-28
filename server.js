@@ -329,7 +329,7 @@ function firstPrompt() {
               case 'Accountant':
                 role = 2;
                 break;
-              case 'Marketer':
+              case 'Marketing Specialist':
                 role = 3;
                 break;
               case 'UI/UX designer':
@@ -380,7 +380,7 @@ function firstPrompt() {
                   type: 'list',
                   name: 'role',
                   message: `Choose ${answer.employee}'s new role:`,
-                  choices: ['Software Engineer', 'Accountant', 'Marketer', 'UI/UX designer']
+                  choices: ['Software Engineer', 'Accountant', 'Marketing Specialist', 'UI/UX designer']
                 }
               ]);
               
@@ -393,7 +393,7 @@ function firstPrompt() {
                 case 'Accountant':
                   new_role = 2;
                   break;
-                case 'Marketer':
+                case 'Marketing Specialist':
                   new_role = 3;
                   break;
                 case 'UI/UX designer':
